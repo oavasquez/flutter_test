@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
+
 
 void main() => runApp(new MyApp());
 
@@ -132,7 +136,7 @@ class LoginFormState extends State<LoginForm> {
                             context,
                             new MaterialPageRoute(
                                 builder: (context) =>
-                                    new MyHomePage(title: 'Aplicacion Demo')));
+                                    new MyHomePage(title: '')));
                       }
                     },
                     child: Text('Iniciar sesion'),
@@ -166,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       child: new Text('Just an example!'),
     ),
     Text('Index 1: Business'),
-    Text('Index 2: School'),
+    new SecondScreen(),
     new BarCodePage(title: 'Aplicacion Demo'),
   ];
 
@@ -216,9 +220,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           FABBottomAppBarItem(iconData: Icons.build, text: 'Configurar'),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: _buildFab(
-          context), // This trailing comma makes auto-formatting nicer for build methods.
+      //floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      //floatingActionButton: _buildFab(
+      //    context), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
@@ -245,26 +249,81 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 }
 
-class SecondScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Second Screen"),
-      ),
-      body: Center(
-        child: RaisedButton(
-          onPressed: () {
-            // Navigate back to the first screen by popping the current route
-            // off the stack
-            Navigator.pop(context);
-          },
-          child: Text('Go back!'),
-        ),
-      ),
+
+class Post {
+
+  final String NombreArticulo;
+
+
+  Post({this.NombreArticulo});
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    print(json['NombreArticulo'].toString());
+    return new Post(
+      NombreArticulo: json['NombreArticulo'].toString(),
     );
   }
 }
+
+
+class SecondScreen extends StatefulWidget {
+
+
+  @override
+  SecondScreenState createState() => new SecondScreenState();
+}
+
+
+class SecondScreenState extends State<SecondScreen> {
+
+
+
+  Future<List<Post>>_traerBines () async  {
+
+    Map data;
+
+    var client = new http.Client();
+    try {
+
+      var uriResponse = await client.post('http://192.168.0.93:80/inventario.aspx/consultarArticulosJson', headers: {"Content-Type": "application/json"});
+
+      List responseJson = json.decode(uriResponse.body);
+
+      print("${uriResponse.statusCode}");
+      print("${uriResponse.body}");
+
+      data = jsonDecode(uriResponse.body);
+
+
+      print(data);
+      print(data['d']);
+
+      return responseJson.map((m) => new Post.fromJson(m)).toList();
+
+    } finally {
+      client.close();
+    }
+
+
+  }
+
+
+    @override
+  Widget build(BuildContext context) {
+      return new FutureBuilder<List<Post>>(
+        future: _traerBines(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return Container( child: Text("Esperando data"));
+          List<Post> posts = snapshot.data;
+          return new ListView(
+            children: posts.map((post) => Text(post.NombreArticulo)).toList(),
+          );
+        },
+      );
+  }
+}
+
+
 
 class ConfigurationPage extends StatefulWidget {
 
@@ -289,6 +348,11 @@ class _ConfigurationPageState extends State<ConfigurationPage>  {
     sharedPreferences = await SharedPreferences.getInstance();
     print(sharedPreferences.getString('servidor'));
       await  sharedPreferences.setString('servidor', servidor);
+    Navigator.push(
+        context,
+        new MaterialPageRoute(
+            builder: (context) =>
+            new Login()));
   }
 
   getParametros() async {
@@ -406,3 +470,4 @@ class _BarCodePageState extends State<BarCodePage> {
     );
   }
 }
+
