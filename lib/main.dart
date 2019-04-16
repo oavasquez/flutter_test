@@ -92,11 +92,11 @@ class LoginFormState extends State<LoginForm> {
                   border: OutlineInputBorder(),
                   icon: Icon(Icons.person),
                 ),
-                validator: (value) {
+                /*validator: (value) {
                   if (value.isEmpty) {
                     return 'Por favor ingrese un usuario valido';
                   }
-                },
+                },*/
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -107,11 +107,11 @@ class LoginFormState extends State<LoginForm> {
                     icon: Icon(Icons.lock),
                   ),
                   obscureText: true,
-                  validator: (value) {
+                  /* validator: (value) {
                     if (value.isEmpty) {
                       return 'Por favor ingrese una contraseña valida';
                     }
-                  },
+                  },*/
                 ),
               ),
               Padding(
@@ -122,7 +122,9 @@ class LoginFormState extends State<LoginForm> {
                   child: RaisedButton(
                     textColor: Colors.white,
                     padding: const EdgeInsets.all(8.0),
-                    color: Theme.of(context).accentColor,
+                    color: Theme
+                        .of(context)
+                        .accentColor,
                     elevation: 4.0,
                     splashColor: Colors.blueGrey,
                     onPressed: () {
@@ -136,7 +138,7 @@ class LoginFormState extends State<LoginForm> {
                             context,
                             new MaterialPageRoute(
                                 builder: (context) =>
-                                    new MyHomePage(title: '')));
+                                new MyHomePage(title: '')));
                       }
                     },
                     child: Text('Iniciar sesion'),
@@ -171,6 +173,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ),
     Text('Index 1: Business'),
     new SecondScreen(),
+
     new BarCodePage(title: 'Aplicacion Demo'),
   ];
 
@@ -250,26 +253,56 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 }
 
 
-
-
-
 class Post {
+  //final int userId;
+  //final int id;
+  final String nombreArticulo;
 
-  final String articulo;
+  //final String body;
 
-
-  Post({this.articulo});
+  Post({ this.nombreArticulo});
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    print(json['NombreArticulo'].toString());
-    return new Post(
-      articulo: json['NombreArticulo'].toString(),
+    return Post(
+      //userId: json['userId'],
+      //id: json['id'],
+      nombreArticulo: json['NombreArticulo'],
+      //body: json['body'],
     );
   }
 }
 
 
+Future<List<Post>> fetchPost() async {
+  Map data;
+  final response =
+
+
+  //await http.get('https://jsonplaceholder.typicode.com/posts');
+  await http.post(
+      'http://192.168.0.93:80/inventario.aspx/consultarArticulosJson',
+      headers: {"Content-Type": "application/json"});
+
+
+  if (response.statusCode == 200) {
+    // If the call to the server was successful, parse the JSON
+    data = jsonDecode(response.body);
+    List responseJson = json.decode(data['d']);
+
+    return responseJson.map((m) => new Post.fromJson(m)).toList();
+    //return Post.fromJson(json.decode(response.body));
+  } else {
+    // If that call was not successful, throw an error.
+    throw Exception('Failed to load post');
+  }
+}
+
+
 class SecondScreen extends StatefulWidget {
+
+  final Future<List<Post>> post;
+
+  SecondScreen({Key key, this.post}) : super(key: key);
 
 
   @override
@@ -280,57 +313,64 @@ class SecondScreen extends StatefulWidget {
 class SecondScreenState extends State<SecondScreen> {
 
 
-
-  Future<List<Post>>_traerBines () async  {
-
-    Map data;
-
-    var client = new http.Client();
-    try {
-
-      var uriResponse = await client.post('http://192.168.0.93:80/inventario.aspx/consultarArticulosJson', headers: {"Content-Type": "application/json"});
-
-      List responseJson = json.decode(uriResponse.body);
-
-      print("${uriResponse.statusCode}");
-      print("${uriResponse.body}");
-
-      data = jsonDecode(uriResponse.body);
-
-
-      print(data);
-      print(data['d']);
-
-      return responseJson.map((m) => new Post.fromJson(m)).toList();
-
-    } finally {
-      client.close();
-    }
-
-
+  @override
+  void initState() {
+    fetchPost();
+    super.initState();
   }
 
-
-    @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return new FutureBuilder(
+      future: fetchPost(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return CircularProgressIndicator();
+        List<Post> posts = snapshot.data;
 
-      body: Center(
-        child: RaisedButton(
-          onPressed: () {
-            // Navigate back to the first screen by popping the current route
-            // off the stack
-           // Navigator.pop(context);
-
-            _traerBines();
+        return ListView.builder(
+          itemCount: snapshot.data.length,
+          itemBuilder: (BuildContext context, int index) {
+            return ListTile(
+              title: Text(posts[index].nombreArticulo),
+              subtitle: Text(posts[index].nombreArticulo),
+            );
           },
-          child: Text('Traer Bines!'),
+        );
+
+      },
+    );
+  }
+/*
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Fetch Data Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Fetch Data Example'),
+        ),
+        body: Center(
+          child: FutureBuilder<Post>(
+            future: widget.post,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Text(snapshot.data.title);
+              } else if (snapshot.hasError) {
+                return Text("${snapshot.error}");
+              }
+
+              // By default, show a loading spinner
+              return CircularProgressIndicator();
+            },
+          ),
         ),
       ),
     );
-  }
+  }*/
 }
-
 
 
 class ConfigurationPage extends StatefulWidget {
@@ -339,7 +379,7 @@ class ConfigurationPage extends StatefulWidget {
   _ConfigurationPageState createState() => new _ConfigurationPageState();
 }
 
-class _ConfigurationPageState extends State<ConfigurationPage>  {
+class _ConfigurationPageState extends State<ConfigurationPage> {
 
   @override
   void initState() {
@@ -351,11 +391,10 @@ class _ConfigurationPageState extends State<ConfigurationPage>  {
   SharedPreferences sharedPreferences;
 
 
-  _conectarServidor (String servidor) async  {
-
+  _conectarServidor(String servidor) async {
     sharedPreferences = await SharedPreferences.getInstance();
     print(sharedPreferences.getString('servidor'));
-      await  sharedPreferences.setString('servidor', servidor);
+    await sharedPreferences.setString('servidor', servidor);
     Navigator.push(
         context,
         new MaterialPageRoute(
@@ -367,7 +406,6 @@ class _ConfigurationPageState extends State<ConfigurationPage>  {
     sharedPreferences = await SharedPreferences.getInstance();
 
     _servidorController.text = sharedPreferences.getString("servidor");
-
   }
 
 
@@ -380,15 +418,15 @@ class _ConfigurationPageState extends State<ConfigurationPage>  {
       body: Center(
         child: Flex(
             direction: Axis.vertical,
-            mainAxisAlignment: MainAxisAlignment.center ,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
 
-                Text(
-                  'Ingrese Direccion del Servidor:',
-                  style: TextStyle(fontSize: 20),
-                  textAlign: TextAlign.center,
+              Text(
+                'Ingrese Direccion del Servidor:',
+                style: TextStyle(fontSize: 20),
+                textAlign: TextAlign.center,
 
-                ),
+              ),
 
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -406,8 +444,7 @@ class _ConfigurationPageState extends State<ConfigurationPage>  {
               ),
               RaisedButton(
                 onPressed: () {
-
-                  _conectarServidor ( _servidorController.text.toString());
+                  _conectarServidor(_servidorController.text.toString());
                 },
                 child: Text("Sincronizar"),
               ),
@@ -440,7 +477,7 @@ class _BarCodePageState extends State<BarCodePage> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       barcodeScanRes =
-          await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
+      await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
