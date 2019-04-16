@@ -250,17 +250,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 }
 
 
+
+
+
 class Post {
 
-  final String NombreArticulo;
+  final String articulo;
 
 
-  Post({this.NombreArticulo});
+  Post({this.articulo});
 
   factory Post.fromJson(Map<String, dynamic> json) {
     print(json['NombreArticulo'].toString());
     return new Post(
-      NombreArticulo: json['NombreArticulo'].toString(),
+      articulo: json['NombreArticulo'].toString(),
     );
   }
 }
@@ -310,16 +313,21 @@ class SecondScreenState extends State<SecondScreen> {
 
     @override
   Widget build(BuildContext context) {
-      return new FutureBuilder<List<Post>>(
-        future: _traerBines(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return Container( child: Text("Esperando data"));
-          List<Post> posts = snapshot.data;
-          return new ListView(
-            children: posts.map((post) => Text(post.NombreArticulo)).toList(),
-          );
-        },
-      );
+    return Scaffold(
+
+      body: Center(
+        child: RaisedButton(
+          onPressed: () {
+            // Navigate back to the first screen by popping the current route
+            // off the stack
+           // Navigator.pop(context);
+
+            _traerBines();
+          },
+          child: Text('Traer Bines!'),
+        ),
+      ),
+    );
   }
 }
 
