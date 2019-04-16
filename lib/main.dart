@@ -136,7 +136,7 @@ class LoginFormState extends State<LoginForm> {
                             context,
                             new MaterialPageRoute(
                                 builder: (context) =>
-                                    new MyHomePage(title: '')));
+                                new MyHomePage(title: '')));
                       }
                     },
                     child: Text('Iniciar sesion'),
@@ -171,6 +171,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     ),
     Text('Index 1: Business'),
     new SecondScreen(),
+
     new BarCodePage(title: 'Aplicacion Demo'),
   ];
 
@@ -250,23 +251,53 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 }
 
 
+
+
+
 class Post {
+  final int userId;
+  final int id;
+  final String title;
+  final String body;
 
-  final String NombreArticulo;
-
-
-  Post({this.NombreArticulo});
+  Post({this.userId, this.id, this.title, this.body});
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    print(json['NombreArticulo'].toString());
-    return new Post(
-      NombreArticulo: json['NombreArticulo'].toString(),
+    print(json['userId']);
+    return Post(
+      userId: json['userId'],
+      id: json['id'],
+      title: json['title'],
+      body: json['body'],
     );
   }
 }
 
 
+Future<List<Post>> fetchPost() async {
+  final response =
+
+
+  await http.get('https://jsonplaceholder.typicode.com/posts');
+
+
+  if (response.statusCode == 200) {
+    // If the call to the server was successful, parse the JSON
+    List responseJson = json.decode(response.body);
+    return responseJson.map((m) => new Post.fromJson(m)).toList();
+    //return Post.fromJson(json.decode(response.body));
+  } else {
+    // If that call was not successful, throw an error.
+    throw Exception('Failed to load post');
+  }
+}
+
+
 class SecondScreen extends StatefulWidget {
+
+  final Future<List<Post>> post;
+
+  SecondScreen({Key key, this.post}) : super(key: key);
 
 
   @override
@@ -278,49 +309,57 @@ class SecondScreenState extends State<SecondScreen> {
 
 
 
-  Future<List<Post>>_traerBines () async  {
 
-    Map data;
-
-    var client = new http.Client();
-    try {
-
-      var uriResponse = await client.post('http://192.168.0.93:80/inventario.aspx/consultarArticulosJson', headers: {"Content-Type": "application/json"});
-
-      List responseJson = json.decode(uriResponse.body);
-
-      print("${uriResponse.statusCode}");
-      print("${uriResponse.body}");
-
-      data = jsonDecode(uriResponse.body);
-
-
-      print(data);
-      print(data['d']);
-
-      return responseJson.map((m) => new Post.fromJson(m)).toList();
-
-    } finally {
-      client.close();
-    }
-
-
+  @override
+  void initState() {
+    fetchPost();
+    super.initState();
   }
 
 
-    @override
+  @override
   Widget build(BuildContext context) {
-      return new FutureBuilder<List<Post>>(
-        future: _traerBines(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return Container( child: Text("Esperando data"));
-          List<Post> posts = snapshot.data;
-          return new ListView(
-            children: posts.map((post) => Text(post.NombreArticulo)).toList(),
-          );
-        },
-      );
+    return new FutureBuilder<List<Post>>(
+      future: fetchPost(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData)  return CircularProgressIndicator();
+        List<Post> posts = snapshot.data;
+        return new ListView(
+          children: posts.map((post) => Text(post.title)).toList(),
+        );
+      },
+    );
   }
+/*
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Fetch Data Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Fetch Data Example'),
+        ),
+        body: Center(
+          child: FutureBuilder<Post>(
+            future: widget.post,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Text(snapshot.data.title);
+              } else if (snapshot.hasError) {
+                return Text("${snapshot.error}");
+              }
+
+              // By default, show a loading spinner
+              return CircularProgressIndicator();
+            },
+          ),
+        ),
+      ),
+    );
+  }*/
 }
 
 
@@ -347,7 +386,7 @@ class _ConfigurationPageState extends State<ConfigurationPage>  {
 
     sharedPreferences = await SharedPreferences.getInstance();
     print(sharedPreferences.getString('servidor'));
-      await  sharedPreferences.setString('servidor', servidor);
+    await  sharedPreferences.setString('servidor', servidor);
     Navigator.push(
         context,
         new MaterialPageRoute(
@@ -375,12 +414,12 @@ class _ConfigurationPageState extends State<ConfigurationPage>  {
             mainAxisAlignment: MainAxisAlignment.center ,
             children: <Widget>[
 
-                Text(
-                  'Ingrese Direccion del Servidor:',
-                  style: TextStyle(fontSize: 20),
-                  textAlign: TextAlign.center,
+              Text(
+                'Ingrese Direccion del Servidor:',
+                style: TextStyle(fontSize: 20),
+                textAlign: TextAlign.center,
 
-                ),
+              ),
 
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -432,7 +471,7 @@ class _BarCodePageState extends State<BarCodePage> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       barcodeScanRes =
-          await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
+      await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
