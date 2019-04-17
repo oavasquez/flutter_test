@@ -321,22 +321,58 @@ class SecondScreenState extends State<SecondScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return new FutureBuilder(
+    return new FutureBuilder<List<Post>>(
       future: fetchPost(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return CircularProgressIndicator();
-        List<Post> posts = snapshot.data;
 
         return ListView.builder(
           itemCount: snapshot.data.length,
           itemBuilder: (BuildContext context, int index) {
-            return ListTile(
-              title: Text(posts[index].nombreArticulo),
-              subtitle: Text(posts[index].nombreArticulo),
+            List<Post> posts = snapshot.data;
+            return Card(
+
+              child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+
+                  child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        ListTile(
+                          leading: Icon(Icons.album),
+                          title:  Text(posts[index].nombreArticulo, style: TextStyle(fontSize: 18.0),),
+                          subtitle: Center(
+                            child: Column(
+                                crossAxisAlignment:CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text('Precio:'),
+                                  Text('Strock:'),
+                                  Text('Estado:'),
+
+                                ]
+                            ),),
+                        ),
+                        ButtonTheme.bar( // make buttons use the appropriate styles for cards
+                          child: ButtonBar(
+                            children: <Widget>[
+                              FlatButton(
+                                child: const Text('REVISAR'),
+                                onPressed: () { /* ... */ },
+                              ),
+                              FlatButton(
+                                child: const Text('CONTAR'),
+                                onPressed: () { /* ... */ },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ]
+                  )
+
+              ),
             );
           },
         );
-
       },
     );
   }
