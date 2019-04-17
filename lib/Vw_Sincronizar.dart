@@ -8,6 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+
+
 
 class Sincronizar extends StatefulWidget {
   @override
@@ -16,50 +19,7 @@ class Sincronizar extends StatefulWidget {
   }
 }
 
-void BorrarDatos() async {
 
-  await DBProvider.db.deleteAll();
-  print("Datos Borrados Exitosamente");
-
-}
-
-Future<List<Articulo>> solicitandoArticulos() async {
-  Map data;
-  final response =
-
-
-  //await http.get('https://jsonplaceholder.typicode.com/posts');
-  await http.post(
-      'http://192.168.0.93:80/inventario.aspx/consultarArticulosJson',
-      headers: {"Content-Type": "application/json"});
-
-
-  if (response.statusCode == 200) {
-    // If the call to the server was successful, parse the JSON
-    data = jsonDecode(response.body);
-    List responseJson = json.decode(data['d']);
-
-    List<Articulo> ListaArticulos = responseJson.map((m) => new Articulo.fromJson(m)).toList();
-
-    print(ListaArticulos[50].nombreArticulo);
-
-
-    for(var i = 0; i < ListaArticulos.length; i++){
-      await DBProvider.db.newArticulo(ListaArticulos[i]);
-      print(ListaArticulos[i]);
-    }
-
-    print("se ha terminado la sincronizacion");
-
-    return ListaArticulos;
-
-
-    //return Post.fromJson(json.decode(response.body));
-  } else {
-    // If that call was not successful, throw an error.
-    throw Exception('Failed to load post');
-  }
-}
 
 
 
@@ -69,6 +29,10 @@ class SincronizarState extends State<Sincronizar> {
   // Create a global key that will uniquely identify the Form widget and allow
   // us to validate the form
   //
+
+
+  bool _saving = false;
+
   @override
   void initState() {
     DBProvider.db.initDB();
@@ -77,10 +41,72 @@ class SincronizarState extends State<Sincronizar> {
   // Note: This is a GlobalKey<FormState>, not a GlobalKey<MyCustomFormState>!
 
 
+  void BorrarDatos() async {
 
-  @override
-  Widget build(BuildContext context) {
-    // Build a Form widget using the _formKey we created above
+    setState(() {
+      _saving = true;
+    });
+
+    await DBProvider.db.deleteAll();
+    print("Datos Borrados Exitosamente");
+
+    setState(() {
+      _saving = false;
+    });
+
+  }
+
+  Future<List<Articulo>> solicitandoArticulos() async {
+
+    setState(() {
+      _saving = true;
+    });
+
+    Map data;
+    final response =
+
+
+    //await http.get('https://jsonplaceholder.typicode.com/posts');
+    await http.post(
+        'http://192.168.0.93:80/inventario.aspx/consultarArticulosJson',
+        headers: {"Content-Type": "application/json"});
+
+
+    if (response.statusCode == 200) {
+      // If the call to the server was successful, parse the JSON
+      data = jsonDecode(response.body);
+      List responseJson = json.decode(data['d']);
+
+      List<Articulo> ListaArticulos = responseJson.map((m) => new Articulo.fromJson(m)).toList();
+
+      print(ListaArticulos[50].nombreArticulo);
+
+
+      for(var i = 0; i < ListaArticulos.length; i++){
+        await DBProvider.db.newArticulo(ListaArticulos[i]);
+        print(ListaArticulos[i]);
+      }
+
+      print("se ha terminado la sincronizacion");
+      setState(() {
+        _saving = false;
+      });
+
+      return ListaArticulos;
+
+
+      //return Post.fromJson(json.decode(response.body));
+    } else {
+      // If that call was not successful, throw an error.
+      throw Exception('Failed to load post');
+    }
+  }
+
+
+
+
+  Widget _buildWidget() {
+
     return Container(
         alignment: Alignment(0.0, 0.0),
         constraints: BoxConstraints.expand(width: 290.0, height: 300.0),
@@ -126,6 +152,19 @@ class SincronizarState extends State<Sincronizar> {
             ),
           ],
         ));
+
+
+  }
+
+
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: ModalProgressHUD(child: _buildWidget(), inAsyncCall: _saving),
+    );
   }
 
 
