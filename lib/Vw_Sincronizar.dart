@@ -16,13 +16,12 @@ class Sincronizar extends StatefulWidget {
   }
 }
 
+void BorrarDatos() async {
 
-List<Articulo> testArticulos = [
-  Articulo(nombreArticulo: "Raouf"),
-  Articulo(nombreArticulo: "Raouf"),
-  Articulo(nombreArticulo: "Raouf"),
-];
+  await DBProvider.db.deleteAll();
+  print("Datos Borrados Exitosamente");
 
+}
 
 Future<List<Articulo>> solicitandoArticulos() async {
   Map data;
@@ -41,17 +40,16 @@ Future<List<Articulo>> solicitandoArticulos() async {
     List responseJson = json.decode(data['d']);
 
     List<Articulo> ListaArticulos = responseJson.map((m) => new Articulo.fromJson(m)).toList();
+
     print(ListaArticulos[50].nombreArticulo);
 
-    await ListaArticulos.map((x) async=>(
-        await DBProvider.db.newArticulo(x)
 
+    for(var i = 0; i < ListaArticulos.length; i++){
+      await DBProvider.db.newArticulo(ListaArticulos[i]);
+      print(ListaArticulos[i]);
+    }
 
-    ));
-
-
-
-
+    print("se ha terminado la sincronizacion");
 
     return ListaArticulos;
 
@@ -107,6 +105,24 @@ class SincronizarState extends State<Sincronizar> {
                   child: Text('Sincronizar Datos'),
                 ),
               ),
+            ),    Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: ButtonTheme(
+                minWidth: 200.0,
+                height: 50.0,
+                child: RaisedButton(
+                  textColor: Colors.white,
+                  padding: const EdgeInsets.all(8.0),
+                  color: Theme.of(context).accentColor,
+                  elevation: 4.0,
+                  splashColor: Colors.blueGrey,
+                  onPressed: () {
+                    BorrarDatos();
+
+                  },
+                  child: Text('Borrar Datos Sincronizados'),
+                ),
+              ),
             ),
           ],
         ));
@@ -140,7 +156,7 @@ class MostrarSincronizacionState extends State<MostrarSincronizacion> {
           itemCount: snapshot.data.length,
           itemBuilder: (BuildContext context, int index) {
             List<Articulo> posts = snapshot.data;
-            print(posts[index].nombreArticulo);
+
             return Card(
 
               child: Padding(

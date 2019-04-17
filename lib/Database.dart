@@ -41,13 +41,13 @@ class DBProvider {
     var table = await db.rawQuery("SELECT MAX(Id)+1 AS Id FROM ARTICULOS");
 
     int id = table.first["Id"];
-    await print(newArticulo.nombreArticulo);
+    await print(id);
     //insert to the table using the new id
 
     var raw = await db.rawInsert(
         "INSERT INTO ARTICULOS ( Id , NombreArticulo)"
         " VALUES (?,?)",
-        [id, "prueba"]);
+        [id, newArticulo.nombreArticulo]);
     return raw;
   }
 
@@ -102,7 +102,7 @@ class DBProvider {
 
     List<Articulo> list =
         res.isNotEmpty ? res.map((c) => Articulo.fromMap(c)).toList() : [];
-    print(list);
+
     return list;
   }
 
@@ -113,6 +113,6 @@ class DBProvider {
 
   deleteAll() async {
     final db = await database;
-    db.rawDelete("Delete * from Client");
+    db.rawDelete("Delete FROM ARTICULOS");
   }
 }
