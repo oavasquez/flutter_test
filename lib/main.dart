@@ -1,6 +1,7 @@
 import 'package:testapp/fab_with_icons.dart';
 import 'package:testapp/fab_bottom_app_bar.dart';
 import 'package:testapp/layout.dart';
+import 'package:testapp/Vw_Sincronizar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -58,6 +59,7 @@ class Login extends StatelessWidget {
     );
   }
 }
+
 
 class LoginForm extends StatefulWidget {
   @override
@@ -163,17 +165,12 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   String _lastSelected = 'TAB: 0';
 
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
   bool showFaloating = true;
   final _widgetOptions = [
-    new Container(
-      color: Colors.amber.shade400,
-      alignment: FractionalOffset.center,
-      child: new Text('Just an example!'),
-    ),
-    Text('Index 1: Business'),
     new SecondScreen(),
-
+    new MostrarSincronizacion(),
+    new Sincronizar(),
     new BarCodePage(title: 'Aplicacion Demo'),
   ];
 
