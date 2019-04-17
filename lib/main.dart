@@ -348,6 +348,7 @@ class SecondScreenState extends State<SecondScreen> {
                                   Text('Precio:'),
                                   Text('Strock:'),
                                   Text('Estado:'),
+                                  Text('Codigo de Barraa:'),
 
                                 ]
                             ),),
