@@ -41,7 +41,7 @@ class DBProvider {
     var table = await db.rawQuery("SELECT MAX(Id)+1 AS Id FROM ARTICULOS");
 
     int id = table.first["Id"];
-    await print(id);
+
     //insert to the table using the new id
 
     var raw = await db.rawInsert(
@@ -113,6 +113,6 @@ class DBProvider {
 
   deleteAll() async {
     final db = await database;
-    db.rawDelete("Delete FROM ARTICULOS");
+    db.rawDelete("DELETE FROM ARTICULOS");
   }
 }

@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 void main() => runApp(new MyApp());
 
@@ -59,7 +59,6 @@ class Login extends StatelessWidget {
     );
   }
 }
-
 
 class LoginForm extends StatefulWidget {
   @override
@@ -124,9 +123,7 @@ class LoginFormState extends State<LoginForm> {
                   child: RaisedButton(
                     textColor: Colors.white,
                     padding: const EdgeInsets.all(8.0),
-                    color: Theme
-                        .of(context)
-                        .accentColor,
+                    color: Theme.of(context).accentColor,
                     elevation: 4.0,
                     splashColor: Colors.blueGrey,
                     onPressed: () {
@@ -140,7 +137,7 @@ class LoginFormState extends State<LoginForm> {
                             context,
                             new MaterialPageRoute(
                                 builder: (context) =>
-                                new MyHomePage(title: '')));
+                                    new MyHomePage(title: '')));
                       }
                     },
                     child: Text('Iniciar sesion'),
@@ -162,17 +159,57 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => new _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> {
   String _lastSelected = 'TAB: 0';
+  bool estadoModal=false;
+
+  @override
+  void initState() {
+    super.initState();
+
+  }
+
+  void refresh(bool estado) {
+    setState(() {
+      estadoModal =estado;
+    });
+  }
 
   int _selectedIndex = 0;
   bool showFaloating = true;
-  final _widgetOptions = [
-    new SecondScreen(),
-    new MostrarSincronizacion(),
-    new Sincronizar(),
-    new BarCodePage(title: 'Aplicacion Demo'),
-  ];
+
+  Widget _buildWidget(_selectedIndex) {
+    switch (_selectedIndex) {
+      case 0:
+        {
+          return new MostrarSincronizacion();
+        }
+        break;
+
+      case 1:
+        {
+          return new Sincronizar(notifyParent: refresh);
+
+        }
+        break;
+      case 2:
+        {
+          return new BarCodePage(title: 'Aplicacion Demo');
+        }
+        break;
+      case 3:
+        {
+          return new SecondScreen();
+        }
+        break;
+
+      default:
+        {
+          return new  SecondScreen();
+        }
+        break;
+    }
+  }
 
   void _onItemTapped(int index) {
     /*if (index==0) {
@@ -197,26 +234,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _body() {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+        child: _buildWidget(_selectedIndex),
       ),
       bottomNavigationBar: FABBottomAppBar(
-        centerItemText: '',
+
         color: Colors.grey,
         selectedColor: Colors.red,
-        notchedShape: CircularNotchedRectangle(),
+
         onTabSelected: _onItemTapped,
         items: [
-          FABBottomAppBarItem(iconData: Icons.view_list, text: 'Inventario'),
-          FABBottomAppBarItem(iconData: Icons.face, text: 'Clientes'),
+          FABBottomAppBarItem(iconData: Icons.view_list, text: 'Articulos'),
           FABBottomAppBarItem(iconData: Icons.autorenew, text: 'Actualizar'),
+          FABBottomAppBarItem(iconData: Icons.camera , text: 'Escanear'),
           FABBottomAppBarItem(iconData: Icons.build, text: 'Configurar'),
         ],
       ),
@@ -224,6 +260,17 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       //floatingActionButton: _buildFab(
       //    context), // This trailing comma makes auto-formatting nicer for build methods.
     );
+
+
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: ModalProgressHUD(child: _body(), inAsyncCall: estadoModal),
+    );
+
   }
 
   Widget _buildFab(BuildContext context) {
@@ -249,7 +296,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 }
 
-
 class Post {
   //final int userId;
   //final int id;
@@ -257,7 +303,7 @@ class Post {
 
   //final String body;
 
-  Post({ this.nombreArticulo});
+  Post({this.nombreArticulo});
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
@@ -269,17 +315,14 @@ class Post {
   }
 }
 
-
 Future<List<Post>> fetchPost() async {
   Map data;
   final response =
 
-
-  //await http.get('https://jsonplaceholder.typicode.com/posts');
-  await http.post(
-      'http://192.168.0.93:80/inventario.aspx/consultarArticulosJson',
-      headers: {"Content-Type": "application/json"});
-
+      //await http.get('https://jsonplaceholder.typicode.com/posts');
+      await http.post(
+          'http://192.168.0.93:80/inventario.aspx/consultarArticulosJson',
+          headers: {"Content-Type": "application/json"});
 
   if (response.statusCode == 200) {
     // If the call to the server was successful, parse the JSON
@@ -294,22 +337,16 @@ Future<List<Post>> fetchPost() async {
   }
 }
 
-
 class SecondScreen extends StatefulWidget {
-
   final Future<List<Post>> post;
 
   SecondScreen({Key key, this.post}) : super(key: key);
-
 
   @override
   SecondScreenState createState() => new SecondScreenState();
 }
 
-
 class SecondScreenState extends State<SecondScreen> {
-
-
   @override
   void initState() {
     fetchPost();
@@ -328,46 +365,47 @@ class SecondScreenState extends State<SecondScreen> {
           itemBuilder: (BuildContext context, int index) {
             List<Post> posts = snapshot.data;
             return Card(
-
               child: Padding(
                   padding: const EdgeInsets.all(16.0),
-
-                  child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        ListTile(
-                          leading: Icon(Icons.album),
-                          title:  Text(posts[index].nombreArticulo, style: TextStyle(fontSize: 18.0),),
-                          subtitle: Center(
-                            child: Column(
-                                crossAxisAlignment:CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text('Precio:'),
-                                  Text('Strock:'),
-                                  Text('Estado:'),
-                                  Text('Codigo de Barraa:'),
-
-                                ]
-                            ),),
-                        ),
-                        ButtonTheme.bar( // make buttons use the appropriate styles for cards
-                          child: ButtonBar(
+                  child:
+                      Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                    ListTile(
+                      leading: Icon(Icons.album),
+                      title: Text(
+                        posts[index].nombreArticulo,
+                        style: TextStyle(fontSize: 18.0),
+                      ),
+                      subtitle: Center(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              FlatButton(
-                                child: const Text('REVISAR'),
-                                onPressed: () { /* ... */ },
-                              ),
-                              FlatButton(
-                                child: const Text('CONTAR'),
-                                onPressed: () { /* ... */ },
-                              ),
-                            ],
+                              Text('Precio:'),
+                              Text('Strock:'),
+                              Text('Estado:'),
+                              Text('Codigo de Barraa:'),
+                            ]),
+                      ),
+                    ),
+                    ButtonTheme.bar(
+                      // make buttons use the appropriate styles for cards
+                      child: ButtonBar(
+                        children: <Widget>[
+                          FlatButton(
+                            child: const Text('REVISAR'),
+                            onPressed: () {
+                              /* ... */
+                            },
                           ),
-                        ),
-                      ]
-                  )
-
-              ),
+                          FlatButton(
+                            child: const Text('CONTAR'),
+                            onPressed: () {
+                              /* ... */
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ])),
             );
           },
         );
@@ -406,15 +444,12 @@ class SecondScreenState extends State<SecondScreen> {
   }*/
 }
 
-
 class ConfigurationPage extends StatefulWidget {
-
   @override
   _ConfigurationPageState createState() => new _ConfigurationPageState();
 }
 
 class _ConfigurationPageState extends State<ConfigurationPage> {
-
   @override
   void initState() {
     super.initState();
@@ -424,16 +459,12 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
   TextEditingController _servidorController = new TextEditingController();
   SharedPreferences sharedPreferences;
 
-
   _conectarServidor(String servidor) async {
     sharedPreferences = await SharedPreferences.getInstance();
     print(sharedPreferences.getString('servidor'));
     await sharedPreferences.setString('servidor', servidor);
     Navigator.push(
-        context,
-        new MaterialPageRoute(
-            builder: (context) =>
-            new Login()));
+        context, new MaterialPageRoute(builder: (context) => new Login()));
   }
 
   getParametros() async {
@@ -441,7 +472,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 
     _servidorController.text = sharedPreferences.getString("servidor");
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -454,25 +484,19 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
             direction: Axis.vertical,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-
               Text(
                 'Ingrese Direccion del Servidor:',
                 style: TextStyle(fontSize: 20),
                 textAlign: TextAlign.center,
-
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20.0),
                 child: TextField(
                   decoration: InputDecoration(
                     labelText: 'Direccion IP',
                     border: OutlineInputBorder(),
-
-
                   ),
                   keyboardType: TextInputType.url,
-
                   controller: _servidorController,
                 ),
               ),
@@ -511,7 +535,7 @@ class _BarCodePageState extends State<BarCodePage> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       barcodeScanRes =
-      await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
+          await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
@@ -549,4 +573,3 @@ class _BarCodePageState extends State<BarCodePage> {
     );
   }
 }
-

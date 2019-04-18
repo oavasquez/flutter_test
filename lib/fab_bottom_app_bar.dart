@@ -54,7 +54,7 @@ class FABBottomAppBarState extends State<FABBottomAppBar> {
         onPressed: _updateIndex,
       );
     });
-    items.insert(items.length >> 1, _buildMiddleTabItem());
+
 
     return BottomAppBar(
       shape: widget.notchedShape,
