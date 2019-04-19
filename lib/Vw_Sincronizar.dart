@@ -1,13 +1,12 @@
-import 'package:testapp/fab_with_icons.dart';
+
 import 'package:testapp/Database.dart';
 import 'package:testapp/ArticuloModel.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
@@ -31,6 +30,7 @@ class SincronizarState extends State<Sincronizar> {
   double CircularPercent = 0;
 
   bool _saving = false;
+  int _parte = 1;
 
   @override
   void initState() {
@@ -56,6 +56,7 @@ class SincronizarState extends State<Sincronizar> {
         await http.post(
             'http://192.168.0.93:80/inventario.aspx/consultarArticulosJson',
             headers: {"Content-Type": "application/json"});
+    print(response.statusCode);
 
     if (response.statusCode == 200) {
       widget.notifyParent(true);
@@ -78,7 +79,57 @@ class SincronizarState extends State<Sincronizar> {
       }
 
       widget.notifyParent(false);
-      print("se ha terminado la sincronizacion");
+
+      solicitandoCodigoBarra();
+      return ListaArticulos;
+
+      //return Post.fromJson(json.decode(response.body));
+    } else {
+      // If that call was not successful, throw an error.
+      throw Exception('Failed to load post');
+    }
+  }
+
+
+
+
+  Future<List<Articulo>> solicitandoCodigoBarra() async {
+
+    setState(() {
+      _parte =2;
+    });
+
+    Map data;
+    final response =
+
+    //await http.get('https://jsonplaceholder.typicode.com/posts');
+    await http.post(
+        'http://192.168.0.93:80/inventario.aspx/consultarCodigoBarraJson',
+        headers: {"Content-Type": "application/json"});
+    print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      widget.notifyParent(true);
+      // If the call to the server was successful, parse the JSON
+      data = jsonDecode(response.body);
+      List responseJson = json.decode(data['d']);
+
+      List<Articulo> ListaArticulos =
+      responseJson.map((m) => new Articulo.fromJson(m)).toList();
+
+      for (var i = 0; i < ListaArticulos.length; i++) {
+        await DBProvider.db.newArticulo(ListaArticulos[i]);
+
+        var num = double.parse((i / ListaArticulos.length).toStringAsFixed(1));
+
+        setState(() {
+          CircularPercent =
+              double.parse((i / ListaArticulos.length).toStringAsFixed(2));
+        });
+      }
+
+      widget.notifyParent(false);
+
 
       return ListaArticulos;
 
@@ -98,7 +149,7 @@ class SincronizarState extends State<Sincronizar> {
     }
     if (CircularPercent < 1 && CircularPercent > 0) {
       return new Text(
-        "Guardando Datos... " +
+        "Guardando Datos... $_parte/2 " +
             (CircularPercent * 100).toStringAsFixed(1) +
             "%",
         style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0),
@@ -132,6 +183,7 @@ class SincronizarState extends State<Sincronizar> {
                   splashColor: Colors.blueGrey,
                   onPressed: () {
                     solicitandoArticulos();
+
                   },
                   child: Text('Sincronizar Datos'),
                 ),
@@ -212,11 +264,11 @@ class MostrarSincronizacionState extends State<MostrarSincronizacion> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return CircularProgressIndicator();
         List<Articulo> posts = snapshot.data;
-        print(posts.length);
     if(posts.length>0) {
       return ListView.builder(
         itemCount: snapshot.data.length,
         itemBuilder: (BuildContext context, int index) {
+          print(posts[index].codigoBarra);
 
 
           return Card(
@@ -234,9 +286,8 @@ class MostrarSincronizacionState extends State<MostrarSincronizacion> {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text('Precio:'),
-                            Text('Strock:'),
-                            Text('Estado:'),
+                            Text('Stock:'+posts[index].stock),
+                            Text('Codigo de Barra:'),
                           ]),
                     ),
                   ),

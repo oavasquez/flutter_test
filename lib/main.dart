@@ -2,6 +2,7 @@ import 'package:testapp/fab_with_icons.dart';
 import 'package:testapp/fab_bottom_app_bar.dart';
 import 'package:testapp/layout.dart';
 import 'package:testapp/Vw_Sincronizar.dart';
+import 'package:testapp/BarCodePage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -199,13 +200,13 @@ class _MyHomePageState extends State<MyHomePage> {
         break;
       case 3:
         {
-          return new SecondScreen();
+          return new  Text("ventana vacia");
         }
         break;
 
       default:
         {
-          return new  SecondScreen();
+          return new  Text("ventana vacia");
         }
         break;
     }
@@ -296,153 +297,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class Post {
-  //final int userId;
-  //final int id;
-  final String nombreArticulo;
 
-  //final String body;
-
-  Post({this.nombreArticulo});
-
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
-      //userId: json['userId'],
-      //id: json['id'],
-      nombreArticulo: json['NombreArticulo'],
-      //body: json['body'],
-    );
-  }
-}
-
-Future<List<Post>> fetchPost() async {
-  Map data;
-  final response =
-
-      //await http.get('https://jsonplaceholder.typicode.com/posts');
-      await http.post(
-          'http://192.168.0.93:80/inventario.aspx/consultarArticulosJson',
-          headers: {"Content-Type": "application/json"});
-
-  if (response.statusCode == 200) {
-    // If the call to the server was successful, parse the JSON
-    data = jsonDecode(response.body);
-    List responseJson = json.decode(data['d']);
-
-    return responseJson.map((m) => new Post.fromJson(m)).toList();
-    //return Post.fromJson(json.decode(response.body));
-  } else {
-    // If that call was not successful, throw an error.
-    throw Exception('Failed to load post');
-  }
-}
-
-class SecondScreen extends StatefulWidget {
-  final Future<List<Post>> post;
-
-  SecondScreen({Key key, this.post}) : super(key: key);
-
-  @override
-  SecondScreenState createState() => new SecondScreenState();
-}
-
-class SecondScreenState extends State<SecondScreen> {
-  @override
-  void initState() {
-    fetchPost();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return new FutureBuilder<List<Post>>(
-      future: fetchPost(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return CircularProgressIndicator();
-
-        return ListView.builder(
-          itemCount: snapshot.data.length,
-          itemBuilder: (BuildContext context, int index) {
-            List<Post> posts = snapshot.data;
-            return Card(
-              child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child:
-                      Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    ListTile(
-                      leading: Icon(Icons.album),
-                      title: Text(
-                        posts[index].nombreArticulo,
-                        style: TextStyle(fontSize: 18.0),
-                      ),
-                      subtitle: Center(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text('Precio:'),
-                              Text('Strock:'),
-                              Text('Estado:'),
-                              Text('Codigo de Barraa:'),
-                            ]),
-                      ),
-                    ),
-                    ButtonTheme.bar(
-                      // make buttons use the appropriate styles for cards
-                      child: ButtonBar(
-                        children: <Widget>[
-                          FlatButton(
-                            child: const Text('REVISAR'),
-                            onPressed: () {
-                              /* ... */
-                            },
-                          ),
-                          FlatButton(
-                            child: const Text('CONTAR'),
-                            onPressed: () {
-                              /* ... */
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ])),
-            );
-          },
-        );
-      },
-    );
-  }
-/*
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Fetch Data Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Fetch Data Example'),
-        ),
-        body: Center(
-          child: FutureBuilder<Post>(
-            future: widget.post,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Text(snapshot.data.title);
-              } else if (snapshot.hasError) {
-                return Text("${snapshot.error}");
-              }
-
-              // By default, show a loading spinner
-              return CircularProgressIndicator();
-            },
-          ),
-        ),
-      ),
-    );
-  }*/
-}
 
 class ConfigurationPage extends StatefulWidget {
   @override
@@ -505,68 +360,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                   _conectarServidor(_servidorController.text.toString());
                 },
                 child: Text("Sincronizar"),
-              ),
-            ]),
-      ),
-    );
-  }
-}
-
-class BarCodePage extends StatefulWidget {
-  BarCodePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _BarCodePageState createState() => new _BarCodePageState();
-}
-
-class _BarCodePageState extends State<BarCodePage> {
-  String _scanBarcode = 'Unknown';
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String barcodeScanRes;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      barcodeScanRes =
-          await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
-    } on PlatformException {
-      barcodeScanRes = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _scanBarcode = barcodeScanRes;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Flex(
-            direction: Axis.vertical,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              RaisedButton(
-                onPressed: () {
-                  initPlatformState();
-                },
-                child: Text("Start barcode scan"),
-              ),
-              Text(
-                'Scan result : $_scanBarcode\n',
-                style: TextStyle(fontSize: 20),
               ),
             ]),
       ),

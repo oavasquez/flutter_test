@@ -30,14 +30,24 @@ class DBProvider {
         onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE ARTICULOS ("
           "Id INTEGER PRIMARY KEY,"
-          "NombreArticulo TEXT"
-          ")");
+          "NombreArticulo TEXT,"
+          "CodigoBarra TEXT,"
+          "SKU TEXT,"
+          "Stock TEXT"
+          "); "
+          "CREATE TABLE CODIGOBARRA ("
+          "Id INTEGER PRIMARY KEY,"
+          "CodigoBarra TEXT,"
+          "SKU TEXT,"
+          "UnidadMedida TEXT,"
+          "CantidadBase TEXT);");
     });
   }
 
   newArticulo(Articulo newArticulo) async {
     final db = await database;
     //get the biggest id in the table
+
     var table = await db.rawQuery("SELECT MAX(Id)+1 AS Id FROM ARTICULOS");
 
     int id = table.first["Id"];
@@ -45,11 +55,54 @@ class DBProvider {
     //insert to the table using the new id
 
     var raw = await db.rawInsert(
-        "INSERT INTO ARTICULOS ( Id , NombreArticulo)"
-        " VALUES (?,?)",
-        [id, newArticulo.nombreArticulo]);
+        "INSERT INTO ARTICULOS ( Id , NombreArticulo, CodigoBarra, SKU, Stock)"
+        " VALUES (?,?,?,?,?)",
+        [id, newArticulo.nombreArticulo,newArticulo.codigoBarra,newArticulo.sku,newArticulo.stock]);
     return raw;
   }
+
+
+  newCodigoBarra(Articulo newArticulo) async {
+    final db = await database;
+    //get the biggest id in the table
+
+    var table = await db.rawQuery("SELECT MAX(Id)+1 AS Id FROM CODIGOBARRA");
+
+    int id = table.first["Id"];
+
+    //insert to the table using the new id
+
+    var raw = await db.rawInsert(
+        "INSERT INTO CODIGOBARRA ( Id , CodigoBarra, SKU, UnidadMedida, CantidadBase)"
+            " VALUES (?,?,?,?,?)",
+        [id, newArticulo.codigoBarra,newArticulo.sku,newArticulo.unidadMedida,newArticulo.cantidadBase]);
+    return raw;
+  }
+
+  Future<List<Articulo>> getAllArticulo() async {
+    final db = await database;
+    var res = await db.query("ARTICULOS");
+
+    List<Articulo> list =
+    res.isNotEmpty ? res.map((c) => Articulo.fromMap(c)).toList() : [];
+
+    return list;
+  }
+
+  Future<List<Articulo>> getCodigoBarra(String CodigoBarra) async {
+    final db = await database;
+    var res = await db.query("CODIGOBARRA", where: "CodigoBarra = ", whereArgs: [CodigoBarra]);
+
+    List<Articulo> list =
+    res.isNotEmpty ? res.map((c) => Articulo.fromMap(c)).toList() : [];
+
+    return list;
+
+  }
+
+
+
+
 
   blockOrUnblock(Client client) async {
     final db = await database;
@@ -96,15 +149,7 @@ class DBProvider {
     return list;
   }
 
-  Future<List<Articulo>> getAllArticulo() async {
-    final db = await database;
-    var res = await db.query("ARTICULOS");
 
-    List<Articulo> list =
-        res.isNotEmpty ? res.map((c) => Articulo.fromMap(c)).toList() : [];
-
-    return list;
-  }
 
   deleteClient(int id) async {
     final db = await database;
@@ -113,6 +158,8 @@ class DBProvider {
 
   deleteAll() async {
     final db = await database;
+
     db.rawDelete("DELETE FROM ARTICULOS");
+
   }
 }
