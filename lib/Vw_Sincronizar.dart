@@ -118,7 +118,7 @@ class SincronizarState extends State<Sincronizar> {
       responseJson.map((m) => new Articulo.fromJson(m)).toList();
 
       for (var i = 0; i < ListaArticulos.length; i++) {
-        await DBProvider.db.newArticulo(ListaArticulos[i]);
+        await DBProvider.db.newCodigoBarra(ListaArticulos[i]);
 
         var num = double.parse((i / ListaArticulos.length).toStringAsFixed(1));
 

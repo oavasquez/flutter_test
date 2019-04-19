@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -9,7 +8,6 @@ import 'package:testapp/ArticuloModel.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'dart:async';
 import 'dart:convert';
-
 
 class BarCodePage extends StatefulWidget {
   BarCodePage({Key key, this.title}) : super(key: key);
@@ -28,22 +26,13 @@ class _BarCodePageState extends State<BarCodePage> {
     super.initState();
   }
 
-
   Widget _builListView() {
-
-    if(_scanBarcode!=''){
-     return  BarCodeDetailsPage();
-    }else{
-      return Text(
-          '',
-          style: TextStyle(fontSize: 20));
-
+    if (_scanBarcode != '' && _scanBarcode != null) {
+      return BarCodeDetailsPage(CodeBar: _scanBarcode);
+    } else {
+      return Text('', style: TextStyle(fontSize: 20));
     }
-
   }
-
-
-
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
@@ -51,7 +40,7 @@ class _BarCodePageState extends State<BarCodePage> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       barcodeScanRes =
-      await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
+          await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancel", false);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
@@ -64,35 +53,37 @@ class _BarCodePageState extends State<BarCodePage> {
     setState(() {
       _scanBarcode = barcodeScanRes;
     });
-
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:  Center(
-        child: Column(
+        body: Center(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          RaisedButton(
-            onPressed: () {
-              initPlatformState();
-            },
-            child: Text("Escanear"),
-          ),
-          Text(
-            'El Codigo de Barra es : $_scanBarcode\n',
-            style: TextStyle(fontSize: 20),
-          ),
-    Expanded(
-    child: _builListView(),
-    )
-        ]
-
-      ),
-      )
-    );
+          children: <Widget>[
+            ButtonTheme(
+                minWidth: 200.0,
+                height: 20.0,
+                child: RaisedButton(
+                  elevation: 5.0,
+                  textColor: Colors.white,
+                  padding: const EdgeInsets.all(10.0),
+                  color: Theme.of(context).accentColor,
+                  splashColor: Colors.blueGrey,
+                  onPressed: () {
+                    initPlatformState();
+                  },
+                  child: Text("Escanear"),
+                )),
+            Text(
+              'El Codigo de Barra es : $_scanBarcode\n',
+              style: TextStyle(fontSize: 20),
+            ),
+            Expanded(
+              child: _builListView(),
+            )
+          ]),
+    ));
   }
 }
-

@@ -28,19 +28,24 @@ class DBProvider {
     String path = join(documentsDirectory.path, "TestAPP.db");
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
+
+
+      await db.execute(
+          "CREATE TABLE CODIGOBARRA ("
+          "Id INTEGER PRIMARY KEY,"
+          "CodigoBarra TEXT,"
+          "SKU TEXT,"
+          "UnidadMedida TEXT,"
+          "CantidadBase TEXT)");
+
       await db.execute("CREATE TABLE ARTICULOS ("
           "Id INTEGER PRIMARY KEY,"
           "NombreArticulo TEXT,"
           "CodigoBarra TEXT,"
           "SKU TEXT,"
           "Stock TEXT"
-          "); "
-          "CREATE TABLE CODIGOBARRA ("
-          "Id INTEGER PRIMARY KEY,"
-          "CodigoBarra TEXT,"
-          "SKU TEXT,"
-          "UnidadMedida TEXT,"
-          "CantidadBase TEXT);");
+          ")");
+
     });
   }
 
@@ -91,7 +96,8 @@ class DBProvider {
 
   Future<List<Articulo>> getCodigoBarra(String CodigoBarra) async {
     final db = await database;
-    var res = await db.query("CODIGOBARRA", where: "CodigoBarra = ", whereArgs: [CodigoBarra]);
+
+    var res = await db.query("CODIGOBARRA", where: "CodigoBarra = ?", whereArgs: [CodigoBarra]);
 
     List<Articulo> list =
     res.isNotEmpty ? res.map((c) => Articulo.fromMap(c)).toList() : [];

@@ -29,14 +29,13 @@ class BarCodeDetailsPageState extends State<BarCodeDetailsPage> {
     return new FutureBuilder<List<Articulo>>(
       future: DBProvider.db.getCodigoBarra(widget.CodeBar),
       builder: (context, snapshot) {
-        print(widget.CodeBar);
-
+        if (!snapshot.hasData) return CircularProgressIndicator();
         List<Articulo> posts = snapshot.data;
-        if(!snapshot.hasData) {
+        if(posts.length>0) {
           return ListView.builder(
             itemCount: snapshot.data.length,
             itemBuilder: (BuildContext context, int index) {
-              print(posts[index].codigoBarra);
+
 
 
               return Card(
@@ -89,7 +88,7 @@ class BarCodeDetailsPageState extends State<BarCodeDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    "No se han econtrado coincidencia.",
+                    "No se encontraron coicidencias.",
                     style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
                   ),
                 ]),
