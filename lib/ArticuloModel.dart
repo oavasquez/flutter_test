@@ -7,6 +7,7 @@ class Articulo {
   final String stock;
   final String cantidadBase;
   final String unidadMedida;
+  final String bin;
 
   Articulo(
       {this.nombreArticulo,
@@ -14,25 +15,29 @@ class Articulo {
       this.sku,
       this.stock,
       this.cantidadBase,
-      this.unidadMedida});
+      this.unidadMedida,
+      this.bin});
 
   factory Articulo.fromMap(Map<String, dynamic> json) => new Articulo(
-      nombreArticulo: json["NombreArticulo"]==null?"":json["NombreArticulo"],
-      codigoBarra: json["CodigoBarra"]==null?"":json["CodigoBarra"],
-      sku: json["SKU"]==null?"":json["SKU"],
-      stock: json["Stock"]==null?"":json["Stock"],
-      cantidadBase: json["CantidadBase"]==null?"":json["CantidadBase"],
-      unidadMedida: json["UnidadMedida"]==null?"":json["UnidadMedida"]);
+      nombreArticulo:
+          json["NombreArticulo"] == null ? "" : json["NombreArticulo"],
+      codigoBarra: json["CodigoBarra"] == null ? "" : json["CodigoBarra"],
+      sku: json["SKU"] == null ? "" : json["SKU"],
+      stock: json["Stock"] == null ? "" : json["Stock"],
+      cantidadBase: json["CantidadBase"] == null ? "" : json["CantidadBase"],
+      unidadMedida: json["UnidadMedida"] == null ? "" : json["UnidadMedida"],
+      bin: json["NombreBin"] == null ? "" : json["NombreBin"]);
 
   factory Articulo.fromJson(Map<String, dynamic> json) {
     return Articulo(
-      nombreArticulo: json['NombreArticulo']==null?"":json["NombreArticulo"],
-      codigoBarra: json["CodigoBarra"]==null?"":json["CodigoBarra"],
-      sku: json["SKU"]==null?"":json["SKU"],
-      stock: json["Stock"]==null?"":json["Stock"],
-      cantidadBase: json["CantidadBase"]==null?"":json["CantidadBase"],
-      unidadMedida: json["UnidadMedida"]==null?"":json["UnidadMedida"],
-    );
+        nombreArticulo:
+            json['NombreArticulo'] == null ? "" : json["NombreArticulo"],
+        codigoBarra: json["CodigoBarra"] == null ? "" : json["CodigoBarra"],
+        sku: json["SKU"] == null ? "" : json["SKU"],
+        stock: json["Stock"] == null ? "" : json["Stock"],
+        cantidadBase: json["CantidadBase"] == null ? "" : json["CantidadBase"],
+        unidadMedida: json["UnidadMedida"] == null ? "" : json["UnidadMedida"],
+        bin: json["NombreBin"] == null ? "" : json["NombreBin"]);
   }
 
   Map<String, dynamic> toMap() => {
@@ -42,6 +47,7 @@ class Articulo {
         "Stock": stock,
         "CantidadBase": cantidadBase,
         "UnidadMedida": unidadMedida,
+        "NombreBin": bin,
       };
 
   Articulo articuloFromJson(String str) {

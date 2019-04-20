@@ -130,8 +130,57 @@ class SincronizarState extends State<Sincronizar> {
 
       widget.notifyParent(false);
 
-
+      solicitandoBines();
       return ListaArticulos;
+
+      //return Post.fromJson(json.decode(response.body));
+    } else {
+      // If that call was not successful, throw an error.
+      throw Exception('Failed to load post');
+    }
+  }
+
+
+
+  Future<List<Articulo>> solicitandoBines() async {
+
+    setState(() {
+      _parte =3;
+    });
+
+    Map data;
+    final response =
+
+    //await http.get('https://jsonplaceholder.typicode.com/posts');
+    await http.post(
+        'http://192.168.0.93:80/inventario.aspx/consultarBinesJson',
+        headers: {"Content-Type": "application/json"});
+    print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      widget.notifyParent(true);
+      // If the call to the server was successful, parse the JSON
+      data = jsonDecode(response.body);
+      List responseJson = json.decode(data['d']);
+
+      List<Articulo> ListaArticulos =
+      responseJson.map((m) => new Articulo.fromJson(m)).toList();
+
+      for (var i = 0; i < ListaArticulos.length; i++) {
+        await DBProvider.db.newBin(ListaArticulos[i]);
+
+        var num = double.parse((i / ListaArticulos.length).toStringAsFixed(1));
+
+        setState(() {
+          CircularPercent =
+              double.parse((i / ListaArticulos.length).toStringAsFixed(2));
+        });
+      }
+
+      widget.notifyParent(false);
+
+
+
 
       //return Post.fromJson(json.decode(response.body));
     } else {
@@ -149,7 +198,7 @@ class SincronizarState extends State<Sincronizar> {
     }
     if (CircularPercent < 1 && CircularPercent > 0) {
       return new Text(
-        "Guardando Datos... $_parte/2 " +
+        "Guardando Datos... $_parte/3 " +
             (CircularPercent * 100).toStringAsFixed(1) +
             "%",
         style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0),
