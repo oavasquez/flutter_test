@@ -1,6 +1,11 @@
-# testapp
+# MiWMSApp
 
-A new Flutter application.
+Aplicacion Creada con Flutter 
+
+## Objetivo de la aplicacion
+Crear una aplicacion de la cual pueda leer los codigos de Barra de los Articulos de una bodega Obteniendo informacion a traves de IIS y de esa forma conectar las base de datos con SQL server y Hana DB de SAP B1, El uso de esta aplicacion es para realizar conteos generales que se realizan en las empresas y llevar un control del mismo tomando como opcion una aplicacion que esta a la disposicion en los dispositivos moviles de los encargados de Bodega.
+
+
 
 ## Getting Started
 
